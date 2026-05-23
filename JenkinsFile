@@ -31,8 +31,6 @@ pipeline {
             sh '''
             echo "Test stage"
             test -f build/index.html
-            npx playwright install --with-deps
-            npx playwright test
             npm test
             '''
             }
@@ -42,6 +40,9 @@ pipeline {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                     reuseNode true
+                }
+                environment {
+                    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '1'
                 }
             }
             steps {
