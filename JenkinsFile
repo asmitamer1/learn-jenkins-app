@@ -41,10 +41,11 @@ pipeline {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                     reuseNode true
                 }
-                environment {
+                
+            }
+            environment {
                     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '1'
                 }
-            }
             steps {
             sh '''
             npm install serve
