@@ -89,7 +89,7 @@ pipeline {
             }
             environment {
                     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '1'
-                    CI_ENVIRONMENT_URL = asmi-first-demo-project.netlify.app
+                    CI_ENVIRONMENT_URL = 'https://asmi-first-demo-project.netlify.app'
                 }
             steps {
             sh '''
