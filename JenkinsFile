@@ -79,6 +79,25 @@ pipeline {
             }
         } 
 
+        stage('Prod E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.60.0-noble'
+                    reuseNode true
+                }
+                
+            }
+            environment {
+                    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '1'
+                    CI_ENVIRONMENT_URL = asmi-first-demo-project.netlify.app
+                }
+            steps {
+            sh '''
+            npx playwright test --reporter=html
+            '''
+            }
+        }
+
     }
         post {
             always {
