@@ -61,7 +61,26 @@ pipeline {
             }
         }
 
-       stage('Deploy') {
+        stage('Staging Deploy') {
+                    agent {
+                        docker {
+                            image 'node:18-alpine'
+                            reuseNode true
+                        }
+                    }
+                    steps {
+                        sh '''
+                        npm install netlify-cli@20.1.1
+                        node_modules/.bin/netlify --version
+                        echo "Deploying to staging site id : $NETLIFY_SITE_ID"
+                        node_modules/.bin/netlify status
+                        node_modules/.bin/netlify deploy --dir=build
+                        '''
+                    }
+                } 
+
+
+       stage('Production Deploy') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -102,7 +121,7 @@ pipeline {
         post {
             always {
                 junit 'jest-results/junit.xml'
-                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'Prod playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
             }
         }
 }
