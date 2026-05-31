@@ -70,18 +70,49 @@ pipeline {
                     }
                     steps {
                         sh '''
-                        npm install netlify-cli@20.1.1
+                        npm install netlify-cli@20.1.1 node-jq
                         node_modules/.bin/netlify --version
                         echo "Deploying to staging site id : $NETLIFY_SITE_ID"
                         node_modules/.bin/netlify status
-                        node_modules/.bin/netlify deploy --dir=build
+                        node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
                         '''
+                        script {
+                            env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json", returnStdout: true)
+                        }
                     }
-                } 
+                }
+
+                
+        stage('Staging E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.60.0-noble'
+                    reuseNode true
+                }
+                
+            }
+            environment {
+                    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '1'
+                    CI_ENVIRONMENT_URL = "$env.STAGING_URL"
+                }
+            steps {
+            sh '''
+            npx playwright test --reporter=html
+            '''
+            }
+            post {
+                always {
+                    junit 'jest-results/junit.xml'
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'Staging-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                }
+            }
+        } 
 
             stage('Approval') {
                 steps {
-                     input message: 'Do you wish to Deploy to production?', ok: 'Yes, I am sure!'
+                    timeout(15) {
+                        input message: 'Do you wish to Deploy to production?', ok: 'Yes, I am sure!'
+                    }
                 }
             }
 
@@ -120,14 +151,15 @@ pipeline {
             npx playwright test --reporter=html
             '''
             }
+            post {
+                always {
+                    junit 'jest-results/junit.xml'
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'Production-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                }
+            }
         }
 
     }
-        post {
-            always {
-                junit 'jest-results/junit.xml'
-                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
-            }
-        }
+        
 }
  
