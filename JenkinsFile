@@ -62,29 +62,7 @@ pipeline {
             }
         }
 
-        stage('Staging Deploy') {
-                    agent {
-                        docker {
-                            image 'node:18-alpine'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh '''
-                        npm install netlify-cli@20.1.1 node-jq
-                        node_modules/.bin/netlify --version
-                        echo "Deploying to staging site id : $NETLIFY_SITE_ID"
-                        node_modules/.bin/netlify status
-                        node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
-                        '''
-                        script {
-                            env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json", returnStdout: true)
-                        }
-                    }
-                }
-
-                
-        stage('Staging E2E') {
+        stage('Staging Deployment') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.60.0-noble'
@@ -94,16 +72,23 @@ pipeline {
             }
             environment {
                     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '1'
-                    CI_ENVIRONMENT_URL = "$env.STAGING_URL"
+                    CI_ENVIRONMENT_URL = "Staging URL will be set after deployment"
                 }
             steps {
             sh '''
+            npm install netlify-cli@20.1.1 node-jq
+            node_modules/.bin/netlify --version
+            echo "Deploying to staging site id : $NETLIFY_SITE_ID"
+            node_modules/.bin/netlify status
+            node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
+            env.STAGING_URL=$(node_modules/.bin/jq -r '.deploy.ssl_url' deploy-output.json)
+            echo "Staging URL: $env.STAGING_URL"
             npx playwright test --reporter=html
             '''
             }
             post {
                 always {
-                    junit 'jest-results/junit.xml'
+                    //junit 'jest-results/junit.xml'
                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Staging-Report', reportTitles: '', useWrapperFileDirectly: true])
                 }
             }
