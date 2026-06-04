@@ -19,7 +19,9 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'aws-cli', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
                     aws --version
-                    aws s3 ls
+                    echo "Hello, S3!" > index.html
+                    aws s3 cp index.html s3://learn-jenkins-03062026/index.html
+                    aws s3 ls s3://learn-jenkins-03062026/
                     '''
                 }
             }
@@ -84,7 +86,7 @@ pipeline {
             '''
             }
         }
-
+/*
         stage('Staging Deployment') {
             agent {
                 docker {
@@ -147,7 +149,7 @@ pipeline {
                 }
             }
         }
-
+*/
     }
         
 }
