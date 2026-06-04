@@ -6,37 +6,8 @@ pipeline {
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.2.$BUILD_NUMBER"
     }
-
-    stages {
-        stage('AWS-CLI') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    args "--entrypoint=''"
-                }
-            }
-            environment {
-                AWS_S3_BUCKET = 'learn-jenkins-03062026'
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'aws-cli', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh '''
-                    aws --version
-                    echo "Hello, S3!" > index.html
-                    aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
-                    aws s3 ls s3://$AWS_S3_BUCKET/
-                    '''
-                }
-            }
-        }
-
-        stage ('Build Docker Image') {
-            steps {
-                sh 'docker build -t my-playwright-image .'
-            }
-        }
-
-       stage('Build') {
+     stages {
+        stage('Build') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -53,6 +24,27 @@ pipeline {
                 npm run build
                 ls -la
                 '''
+            }
+        }
+       
+        stage('AWS-CLI') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    args "--entrypoint=''"
+                }
+            }
+            environment {
+                AWS_S3_BUCKET = 'learn-jenkins-03062026'
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'aws-cli', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                    aws --version
+                    aws s3 cp index.html s3://$AWS_S3_BUCKET/index.html
+                    aws s3 sync build s3://$AWS_S3_BUCKET
+                    '''
+                }
             }
         }
         stage('Test') {
