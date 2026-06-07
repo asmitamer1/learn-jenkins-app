@@ -7,6 +7,7 @@ pipeline {
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')   
       */
         REACT_APP_VERSION = "1.2.$BUILD_NUMBER"
+        AWS_DEFAULT_REGION = 'us-east-1'
     }
      stages {
        
@@ -47,7 +48,7 @@ pipeline {
                 npm config set cache .npm
                 npm ci --cache .npm 
                 npm run build
-                aws ecs register-task-definition --cli-input-json file://learn-jenkins-app\aws\taskdefinition.json
+                aws ecs register-task-definition --cli-input-json file://learn-jenkins-app/aws/taskdefinition.json
                 ls -la
                 '''
             }
