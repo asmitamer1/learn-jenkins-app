@@ -2,30 +2,14 @@ pipeline {
     agent any
 
     environment {
+      /*  
         NETLIFY_SITE_ID = '074a4c11-bda4-4f63-b5e5-9b2fd4f7d75d'
-        NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        NETLIFY_AUTH_TOKEN = credentials('netlify-token')   
+      */
         REACT_APP_VERSION = "1.2.$BUILD_NUMBER"
     }
      stages {
-        stage('Build') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
-            steps {
-                sh '''
-                ls -la
-                node --version
-                npm --version
-                npm config set cache .npm
-                npm ci --cache .npm 
-                npm run build
-                ls -la
-                '''
-            }
-        }
+       
        
         stage('AWS-CLI') {
             agent {
@@ -47,7 +31,28 @@ pipeline {
                 }
             }
         }
-        stage('Test') {
+
+         stage('Build') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                ls -la
+                node --version
+                npm --version
+                npm config set cache .npm
+                npm ci --cache .npm 
+                npm run build
+                aws ecs register-task-definition --cli-input-json file://learn-jenkins-app\aws\taskdefinition.json
+                ls -la
+                '''
+            }
+        }
+  /*      stage('Test') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -81,7 +86,7 @@ pipeline {
             '''
             }
         }
-/*
+
         stage('Staging Deployment') {
             agent {
                 docker {
