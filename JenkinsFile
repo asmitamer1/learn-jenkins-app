@@ -27,7 +27,8 @@ pipeline {
                     sh '''
                     aws --version
                     aws s3 sync build s3://$AWS_S3_BUCKET
-                    '''
+                    aws ecs register-task-definition --cli-input-json file://learn-jenkins-app/aws/taskdefinition.json
+                   '''
                 }
             }
         }
@@ -41,30 +42,12 @@ pipeline {
             }
             steps {
                 sh '''
-                
-    echo "=== Environment ==="
-    pwd
-    whoami
-
-    echo "=== OS ==="
-    cat /etc/os-release || true
-
-    echo "=== AWS ==="
-    which aws || true
-    aws --version || true
-
-    echo "=== Node ==="
-    node --version || true
-
-    echo "=== PATH ==="
-    echo $PATH
                 ls -la
                 node --version
                 npm --version
                 npm config set cache .npm
                 npm ci --cache .npm 
                 npm run build
-                aws ecs register-task-definition --cli-input-json file://learn-jenkins-app/aws/taskdefinition.json
                 ls -la
                 '''
             }
