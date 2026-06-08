@@ -18,7 +18,7 @@ pipeline {
                 docker {
                     image 'amazon/aws-cli'
                     reuseNode true
-                    args "--entrypoint=''"
+                    args "-u root --entrypoint=''"
                 }
             }
             
@@ -26,9 +26,11 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'aws-cli', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
                     aws --version
+                    yum install jq -y
                     aws s3 sync build s3://$AWS_S3_BUCKET
-                    aws ecs register-task-definition --cli-input-json file://aws/taskdefinition.json
-                    aws ecs update-service --cluster snoopy-hamster-6g789c --service LearnJenkins-Taskdef-Prod-service-en9e2v2b --task-definition LearnJenkins-Taskdef-Prod:2
+                    LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/taskdefinition.json | jq '.taskDefinition.revision')
+                    echo "Latest Task Definition Revision: $LATEST_TD_REVISION"
+                    aws ecs update-service --cluster snoopy-hamster-6g789c --service LearnJenkins-Taskdef-Prod-service-en9e2v2b --task-definition LearnJenkins-Taskdef-Prod:$LATEST_TD_REVISION
                    '''
                 }
             }
