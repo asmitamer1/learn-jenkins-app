@@ -28,6 +28,7 @@ pipeline {
                     aws --version
                     aws s3 sync build s3://$AWS_S3_BUCKET
                     aws ecs register-task-definition --cli-input-json file://aws/taskdefinition.json
+                    aws ecs update-service --cluster snoopy-hamster-6g789c --service LearnJenkins-Taskdef-Prod-service-en9e2v2b --task-definition LearnJenkins-Taskdef-Prod:2
                    '''
                 }
             }
