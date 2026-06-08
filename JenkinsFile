@@ -9,6 +9,9 @@ pipeline {
         REACT_APP_VERSION = "1.2.$BUILD_NUMBER"
         AWS_DEFAULT_REGION = 'us-east-1'
         AWS_S3_BUCKET = 'learn-jenkins-03062026'
+        AWS_ECS_CLUSTER = 'snoopy-hamster-6g789c'
+        AWS_ECS_SERVICE = 'LearnJenkins-Taskdef-Prod-service-en9e2v2b'
+        AWS_ECS_TASK_DEFINITION = 'LearnJenkins-Taskdef-Prod'
     }
      stages {
        
@@ -30,7 +33,8 @@ pipeline {
                     aws s3 sync build s3://$AWS_S3_BUCKET
                     LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/taskdefinition.json | jq '.taskDefinition.revision')
                     echo "Latest Task Definition Revision: $LATEST_TD_REVISION"
-                    aws ecs update-service --cluster snoopy-hamster-6g789c --service LearnJenkins-Taskdef-Prod-service-en9e2v2b --task-definition LearnJenkins-Taskdef-Prod:$LATEST_TD_REVISION
+                    aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --task-definition $AWS_ECS_TASK_DEFINITION:$LATEST_TD_REVISION
+                    aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --services $AWS_ECS_SERVICE
                    '''
                 }
             }
