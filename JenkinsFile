@@ -41,6 +41,23 @@ pipeline {
             }
             steps {
                 sh '''
+                
+    echo "=== Environment ==="
+    pwd
+    whoami
+
+    echo "=== OS ==="
+    cat /etc/os-release || true
+
+    echo "=== AWS ==="
+    which aws || true
+    aws --version || true
+
+    echo "=== Node ==="
+    node --version || true
+
+    echo "=== PATH ==="
+    echo $PATH
                 ls -la
                 node --version
                 npm --version
