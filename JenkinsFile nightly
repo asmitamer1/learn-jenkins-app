@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage ('Build Docker Image') {
             steps {
-                sh pwd
-                sh find . -name Dockerfile
+                sh 'pwd'
+                sh 'find . -name Dockerfile'
                 sh 'docker build -f /ci/Dockerfile -t my-playwright-image .'
                 
             }
